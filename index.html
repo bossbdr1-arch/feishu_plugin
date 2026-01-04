@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>飞书多维表格 · 气泡图</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --header-bg: #f8f9fa;
+            --panel-bg: #ffffff;
+            --border-color: #dee2e6;
+            --primary-color: #409eff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 0;
+            margin: 0;
+        }
+
+        #app-root {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .plugin-container {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .header-section {
+            padding: 16px 24px;
+            background-color: var(--header-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .header-section h2 {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin: 0;
+                color: #1d2129;
+            }
+
+        .control-section {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .chart-section {
+            padding: 0 24px 24px;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 500px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .y-axis-panel {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 4px;
+        }
+
+        .y-axis-item {
+            padding: 4px 0;
+        }
+
+        #error-message {
+            display: none;
+            color: #dc3545;
+            padding: 8px 12px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.875rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #495057;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+            .btn-outline-primary:hover {
+                background-color: #ecf5ff;
+                border-color: #a0cfff;
+            }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+            .btn-primary:hover {
+                background-color: #66b1ff;
+                border-color: #66b1ff;
+            }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
+        .toolbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .toolbar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1d2129;
+        }
+
+        /* chart footer area for export buttons */
+        .chart-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+        }
+    </style>
+  <script type="module" crossorigin src="./assets/index-DpQvndyX.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-wcDjC1ob.css">
+</head>
+
+<body>
+    <div id="app-root">
+        <div class="plugin-container">
+            <div class="header-section">
+                <h2>飞书多维表格 · 可视化图</h2>
+            </div>
+
+            <div class="control-section">
+                <div id="error-message"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">表格</label>
+                        <select id="tableSelect" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">视图</label>
+                        <select id="viewSelect" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">横轴（类别）</label>
+                        <select id="xAxisField" class="form-select"></select>
+                    </div>
+
+                </div>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-md-12">
+                        <label class="form-label">纵轴（数值）</label>
+
+                        <!-- 单选/多选按钮组 -->
+                        <div class="mb-2">
+                            <div class="radio-group">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="yMode" id="yModeSingle" value="single" checked>
+                                    <label class="form-check-label" for="yModeSingle">单选</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="yMode" id="yModeMulti" value="multi">
+                                    <label class="form-check-label" for="yModeMulti">多选</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Y轴选择区域（在按钮正下方） -->
+                        <div>
+                            <select id="yAxisField" class="d-none" multiple></select>
+
+                            <div id="y-axis-single-select">
+                                <select id="yAxisSingleSelect" class="form-select"></select>
+                            </div>
+
+                            <div id="y-axis-multi-select" class="d-none">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span id="y-selected-count" class="text-muted small"></span>
+                                </div>
+                                <div id="y-axis-list" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="toolbar-container">
+         
+                </div>
+
+                <div id="chart-container" class="d-none"></div>
+
+                <!-- 底部导出按钮（放在图表下方） -->
+                <div class="chart-footer">
+                    <button id="exportPNG" class="btn btn-sm btn-outline-secondary">导出 PNG</button>
+                    <button id="exportSVG" class="btn btn-sm btn-outline-secondary">导出 SVG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal (bootstrap) -->
+    <div class="modal fade" id="chartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl" style="max-width: 95%; min-width: 800px;">
+            <div class="modal-content justify-content-center">
+                <div class="modal-header">
+                    <h5 class="modal-title">气泡图</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body" style="min-height: 600px; min-width: 800px; height: 80vh;">
+                    <div id="chart-modal-container" style="width:100%;height:100%"></div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button id="modalExportPNG" class="btn btn-primary btn-sm">导出 PNG</button>
+                    <button id="modalExportSVG" class="btn btn-outline-secondary btn-sm">导出 SVG</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</body>
+</html>
