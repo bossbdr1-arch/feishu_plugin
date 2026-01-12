@@ -1,1 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 0;
+            margin: 0;
+        }
 
+        #app-root {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .plugin-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .header-section {
+            padding: 16px 24px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+        }
+
+        .control-section {
+            padding: 24px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .chart-section {
+            padding: 0 24px 24px;
+        }
+
+        #chart-container {
+            width: 100%;
+            height: 520px;
+            background-color: #fff;
+            border: 1px solid #e6e9ee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #y-axis-list-bubble {
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .control-section .row > [class*="col-"] {
+            min-width: 200px;
+        }
+
+        .special-category-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 4px solid #007bff;
+        }
+
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* 优化模态框样式 */
+        .modal-dialog.modal-xl {
+            max-width: 95vw !important;
+            width: 95vw !important;
+            height: 95vh !important;
+            margin: 2.5vh auto !important;
+        }
+
+        .modal-content {
+            height: 95vh !important;
+            max-height: 95vh !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-body {
+            flex: 1 1 auto;
+            min-height: 600px;
+            min-width: 800px;
+            padding: 0 !important;
+            overflow: hidden !important;
+            position: relative;
+        }
+
+        #chart-modal-container {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 600px;
+            min-width: 800px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .modal-header, .modal-footer {
+            flex-shrink: 0;
+        }
+
+        /* Brand_Name选项样式 */
+        option[disabled] {
+            color: #6c757d;
+            font-style: italic;
+            background-color: #f8f9fa;
+        }
+    </style>
+  <script type="module" crossorigin src="./assets/index-Dr0aIoss.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-wcDjC1ob.css">
+</head>
+<body>
+    <div id="app-root">
+        <div class="plugin-container">
+            <div class="header-section">
+                <h2>Data· Analysis</h2>
+            </div>
+
+            <!-- 控件区 -->
+            <div class="control-section">
+                <div id="error-message" style="display:none;" class="alert alert-danger"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">表格</label>
+                        <select id="tableSelect" class="form-select"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">视图</label>
+                        <select id="viewSelect" class="form-select"></select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">图表类型</label>
+                        <select id="chartTypeSelect" class="form-select">
+                            <option value="bubble" selected>气泡图</option>
+                            <option value="bar">柱状图</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 气泡图控件 -->
+                <div id="bubbleControls" class="mt-3">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">横轴（类别）</label>
+                            <select id="xAxisField_bubble" class="form-select"></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">纵轴（数值）</label>
+                            <div class="mb-2">
+                                <div class="radio-group">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="yMode_bubble" id="yModeSingle_bubble" value="single" checked>
+                                        <label class="form-check-label" for="yModeSingle_bubble">单选</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="yMode_bubble" id="yModeMulti_bubble" value="multi">
+                                        <label class="form-check-label" for="yModeMulti_bubble">多选</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 隐藏的权威select -->
+                            <select id="yAxisField_bubble" class="d-none" multiple></select>
+
+                            <!-- 可见单选控件 -->
+                            <div id="y-axis-single-select-bubble">
+                                <select id="yAxisSingleSelect_bubble" class="form-select"></select>
+                            </div>
+
+                            <!-- 可见多选控件 -->
+                            <div id="y-axis-multi-select-bubble" class="d-none">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span id="y-selected-count-bubble" class="text-muted small"></span>
+                                </div>
+                                <div id="y-axis-list-bubble" class="border rounded p-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 柱状图控件 -->
+                <div id="barControls" class="mt-3 d-none">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">横轴（分类）</label>
+                            <select id="xAxisField_bar" class="form-select"></select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">纵轴（数值）</label>
+                            <select id="yAxisField_bar" class="form-select"></select>
+                        </div>
+                    </div>
+
+                    <!-- 柱状图特殊分类颜色设置 -->
+                    <div id="specialCategorySection" class="special-category-container mt-4">
+                        <h6 class="mb-2">特殊分类颜色设置</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">分类名称</label>
+                                <select id="specialCategorySelect" class="form-select">
+                                    <option value="">请选择分类</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">颜色</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <span id="colorPreview" class="color-preview" style="background-color: #e74c3c;"></span>
+                                    </span>
+                                    <input type="color" id="specialCategoryColor" class="form-control form-control-color" value="#e74c3c" title="选择颜色">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 small text-muted">
+                            <span id="specialCategoryStatus">选择分类并设置颜色，颜色将自动应用</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="chart-section">
+                <div class="toolbar-container"></div>
+                <div id="chart-container" class="d-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal（放大查看） -->
+    <div class="modal fade" id="chartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">图表放大查看</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="chart-modal-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- libs -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- 双向同步脚本 - 恢复这个脚本！ -->
+    <script>
+        (function ($) {
+            $(function () {
+                const $hidden = $('#yAxisField_bubble');
+                const $single = $('#yAxisSingleSelect_bubble');
+                const $multiList = $('#y-axis-list-bubble');
+                const $selectedCount = $('#y-selected-count-bubble');
+
+                function rebuildFromHidden() {
+                    const opts = $hidden.find('option');
+                    $single.empty().append('<option value="">请选择一个纵轴字段</option>');
+                    $multiList.empty();
+
+                    opts.each(function () {
+                        const id = $(this).val();
+                        const name = $(this).text();
+                        if (id === undefined || id === null || id === '' || id === '无数值字段') return;
+                        // single select
+                        $single.append(`<option value="${id}">${name}</option>`);
+                        // multi checkbox list
+                        const safeId = String(id).replace(/[^a-zA-Z0-9\-_:.]/g, '_');
+                        $multiList.append(`<div class="form-check" data-id="${id}"><input class="form-check-input" type="checkbox" id="yfield-bubble-${safeId}" value="${id}"><label class="form-check-label" for="yfield-bubble-${safeId}">${name}</label></div>`);
+                    });
+
+                    // 同步选中状态
+                    const val = $hidden.val();
+                    if (Array.isArray(val)) {
+                        $multiList.find('input[type="checkbox"]').prop('checked', false);
+                        val.forEach(v => {
+                            const safeV = String(v).replace(/[^a-zA-Z0-9\-_:.]/g, '_');
+                            $(`#yfield-bubble-${safeV}`).prop('checked', true);
+                        });
+                        $selectedCount.text(val.length ? `已选 ${val.length} 个` : '');
+                    } else if (val && val !== '') {
+                        $single.val(val);
+                        $selectedCount.text('');
+                    } else {
+                        $single.val('');
+                        $multiList.find('input[type="checkbox"]').prop('checked', false);
+                        $selectedCount.text('');
+                    }
+                }
+
+                rebuildFromHidden();
+
+                // 观察 hidden select 的变化
+                const hiddenNode = $hidden.get(0);
+                if (hiddenNode && window.MutationObserver) {
+                    const mo = new MutationObserver(function (mutations) {
+                        rebuildFromHidden();
+                    });
+                    mo.observe(hiddenNode, { childList: true, subtree: true, attributes: true, attributeFilter: ['value', 'selected'] });
+                }
+
+                // 单选选择变化时写回hidden
+                $single.on('change', function () {
+                    const v = $(this).val();
+                    if (v === null || v === '') {
+                        $hidden.val([]);
+                    } else {
+                        $hidden.val(String(v));
+                    }
+                    $hidden.trigger('change');
+                });
+
+                // 多选checkbox变化时写回hidden
+                $(document).on('change', '#y-axis-list-bubble input[type="checkbox"]', function () {
+                    const vals = $('#y-axis-list-bubble input:checked').map((_, el) => $(el).val()).get();
+                    $hidden.val(vals);
+                    $selectedCount.text(vals.length ? `已选 ${vals.length} 个` : '');
+                    $hidden.trigger('change');
+                });
+
+                // 模式切换
+                $(document).on('change', 'input[name="yMode_bubble"]', function () {
+                    const mode = $('input[name="yMode_bubble"]:checked').val();
+                    if (mode === 'single') {
+                        const hv = $hidden.val();
+                        if (Array.isArray(hv) && hv.length) {
+                            $single.val(hv[0]);
+                        }
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+
+    <!-- 主入口 -->
+</body>
+</html>
